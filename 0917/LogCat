@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
-<!--LogCat : 실행 내역 관련(물리적 : 디버그)-->
+    <!--LogCat : 실행 내역 관련(물리적 : 디버그)-->
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
@@ -29,6 +29,7 @@
         app:layout_constraintRight_toRightOf="@id/textView"
         app:layout_constraintTop_toBottomOf="@id/textView"/>
     <CheckBox
+        android:id="@+id/checkBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintLeft_toLeftOf="@+id/btn"
@@ -36,24 +37,62 @@
         app:layout_constraintTop_toBottomOf="@id/btn"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
 ==================================================================
-textView = findViewById(R.id.textView);
-button = findViewById(R.id.button);
-checkBox = findViewById(R.id.checkBox);
-textView.setOnTouchListner(new View.OnTouchListner(){
- 	@Override
-	public boollean onTouch(View v, MotionEvent event){
-		Log.i("test", "textView onTouch");
-		return false;
-	}
-});
-button.setOnClickListner(new View.OnClickListner(){
-	@Override
-	public void onClick(View v){
-		Log.i("test", "button onClick");
-	}
-});
-checkBox.setOnCheckedChangedListner(new CompoundButton.OnCheckedChangeListner(){
-	@Override
-	public void onCheckedChanged(@NonNull CompoundButton buttonView, boolean isChecked){
-		Log.i("checkBox" + checked);
-	}
+package com.iot.test1;
+
+import android.annotation.SuppressLint;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.TextView;
+
+import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+public class MainActivity extends AppCompatActivity {
+    private TextView textView;
+    private Button button;
+    private CheckBox checkBox;
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+        textView = findViewById(R.id.textView);
+        button = findViewById(R.id.btn);
+        checkBox = findViewById(R.id.checkBox);
+        textView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                Log.i("test", "testView onTouch");
+                return false;
+            }
+        });
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i("test", "button onClick");
+            }
+        });
+        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(@NonNull CompoundButton buttonView, boolean isChecked) {
+                Log.i("test", "checkBox : " + isChecked);
+            }
+        });
+    }
+}
