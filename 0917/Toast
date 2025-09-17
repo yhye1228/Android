@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:layout_columnWeight="10"
+    tools:context=".MainActivity">
+<!--toast : 짧은 메세지를 팝업창으로 표시-->
+<!--LinearLayout을 8 : 2로 분햘-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="#FFFF00"
+        android:layout_weight="8">
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/width"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:weightSum="10"
+        android:background="#F44336">
+        <EditText
+            android:id="@+id/editText"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="8"
+            android:hint="@string/message"
+            android:textSize="20sp"
+            android:textColor="#310C0C"
+            tools:ignore="NestedWeights" />
+        <Button
+            android:id="@+id/button"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:text="btn"
+            android:textSize="23sp"
+            tools:ignore="HardcodedText" />
+    </LinearLayout>
+</LinearLayout>
+==============================================
+package com.iot.toast;
+
+import android.annotation.SuppressLint;
+import android.os.Bundle;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Toast;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+public class MainActivity extends AppCompatActivity {
+    private EditText editText;
+    private Button button;
+    private ImageView imageView;
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+        editText = findViewById(R.id.editText);
+        button = findViewById(R.id.button);
+        imageView = findViewById(R.id.imageView);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String msg = editText.getText().toString();
+                editText.setText("");
+                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+                // 토스트 만들기 : Toast.makeText(context, "토스트 메세지", Toast.LENGTH_SHORT).show()
+                // Toast.LENGTH_SHORT : 토스트가 보여지는 시간
+            }
+        });
+        imageView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                Toast.makeText(MainActivity.this, "Hello View", Toast.LENGTH_LONG).show();
+                return false;
+            }
+        });
+    }
+}
