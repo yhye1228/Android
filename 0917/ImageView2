@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:weightSum="10"
+    tools:context=".MainActivity">
+    <!-- weightSum : 가중치 10 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/text"
+        android:layout_weight="1"
+        android:textSize="25sp"
+        android:textColor="#0BC50F"
+        android:background="#FFEB3B"
+        android:gravity="center"/>
+    <!-- layout_weight : 전체 가중치의 10% -->
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:src="@drawable/width"
+        android:layout_weight="9"
+        android:background="#97FF29"
+        android:scaleType="center"/>
+    <!-- android:scaleType="fitEnd" -->
+    <!-- layout_weight : 전체 가중치의 90% -->
+</LinearLayout>
