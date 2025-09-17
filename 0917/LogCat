@@ -35,3 +35,25 @@
         app:layout_constraintRight_toRightOf="@+id/btn"
         app:layout_constraintTop_toBottomOf="@id/btn"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
+==================================================================
+textView = findViewById(R.id.textView);
+button = findViewById(R.id.button);
+checkBox = findViewById(R.id.checkBox);
+textView.setOnTouchListner(new View.OnTouchListner(){
+ 	@Override
+	public boollean onTouch(View v, MotionEvent event){
+		Log.i("test", "textView onTouch");
+		return false;
+	}
+});
+button.setOnClickListner(new View.OnClickListner(){
+	@Override
+	public void onClick(View v){
+		Log.i("test", "button onClick");
+	}
+});
+checkBox.setOnCheckedChangedListner(new CompoundButton.OnCheckedChangeListner(){
+	@Override
+	public void onCheckedChanged(@NonNull CompoundButton buttonView, boolean isChecked){
+		Log.i("checkBox" + checked);
+	}
