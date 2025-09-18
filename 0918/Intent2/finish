@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    tools:context=".OverActivity">
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/over"
+        android:textColor="#FF0000"
+        android:textSize="25sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+    <Button
+        android:id="@+id/mainBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="main"
+        android:textSize="15sp"
+        android:textColor="#FFCD00"
+        android:layout_marginEnd="5dp"
+        app:layout_constraintLeft_toLeftOf="@id/textView"
+        app:layout_constraintRight_toLeftOf="@id/playBtn"
+        app:layout_constraintTop_toBottomOf="@id/textView"
+        tools:ignore="HardcodedText,MissingConstraints" />
+    <Button
+        android:id="@+id/playBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/_continue"
+        android:textSize="15sp"
+        android:layout_marginStart="5dp"
+        app:layout_constraintLeft_toRightOf="@id/mainBtn"
+        app:layout_constraintRight_toRightOf="@id/textView"
+        app:layout_constraintTop_toBottomOf="@id/textView"
+        android:textColor="#5EFF4E"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+================================================================================
+package com.iot.activity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+public class OverActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_over);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+        Button mainBtn = findViewById(R.id.mainBtn);
+        Button playBtn = findViewById(R.id.playBtn);
+        mainBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(OverActivity.this, MainActivity.class);
+                //바로 mainActivity로 이동(뒤로가기 시 홈으로 이동)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);//over에서 main으로 이동하고 뒤로 가기 누르면 홈으로 이동
+                startActivity(intent);
+            }
+        });
+        playBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();//현재 실행하고 있는 over화면을 닫고 이전에 실행한 화면을 보여준다.
+                //main >> play >> over
+            }
+        });
+    }
+}
