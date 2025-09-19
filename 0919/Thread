@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/cnt"
+        android:textSize="25sp"
+        android:textColor="#2196F3"/>
+</LinearLayout>
+=================================================
+package com.iot.thread;
+
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.TextView;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+public class MainActivity extends AppCompatActivity {
+    private TextView textView;
+    private int counter = 0;
+    private boolean isRunning = true;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+
+        textView = findViewById(R.id.textView);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //실행
+                while(isRunning){
+                    //예외처리
+                    try{
+                        Thread.sleep(1000); //1초간 스레드 정지
+                    }catch(InterruptedException e){
+                        e.printStackTrace();
+                    }
+                    counter++;
+                    Log.i("test", "thread running : " + counter);
+//                    runOnUiThread(new Runnable() {      //UI 업데이트(메인 스레드 실행)
+//                        @Override
+//                        public void run() {
+//                            textView.setText(String.valueOf(counter));
+//                        }
+//                    });
+                }//while end
+            }//run end
+        });//thread end
+        thread.start();     //스레드 시작
+    }
+    //엑티비티 종료 시 메모리 누수 방지를 위한 스레드 종료
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        isRunning = false;
+    }
+}
