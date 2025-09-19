@@ -1,0 +1,23 @@
+package com.iot.application;
+
+import android.app.Application;
+
+//자바파일 만들기
+public class MyApplication extends Application {
+    private String globalString;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        globalString = "Hello Android";
+    }
+
+    public String getGlobalString() {
+        return globalString;
+    }
+
+    public void setGlobalString(String globalstring) {
+        this.globalString = globalString;
+    }
+    //=> 생성자 필요없음
+}
