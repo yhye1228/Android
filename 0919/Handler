@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    tools:context=".MainActivity">
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/progress_0"
+        android:textSize="25sp"
+        android:textColor="#F44336"/>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="15dp"
+        android:max="100" />
+</LinearLayout>
+========================================================================
+package com.iot.handler;
+
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+public class MainActivity extends AppCompatActivity {
+    private ProgressBar progressBar;
+    private TextView textView;
+    public static final long DELAY_MS = 100;
+    public static final int WHAT_PROGRESS = 1;  //메시지 식별자
+    private final Handler handler = new Handler(Looper.getMainLooper()){
+        //Handler : 메세지나    에 메세지를 불러주는 역할
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            super.handleMessage(msg);
+            if(progressBar.getProgress() < 100){
+                progressBar.setProgress(progressBar.getProgress() + 1 );
+                textView.setText("Progress: " + progressBar.getProgress() + "%");
+                // DELAY__MS초 이후에 WHAT_PROGRESS 메시지를 또 보낸다.
+                sendEmptyMessageDelayed(WHAT_PROGRESS, DELAY_MS);
+            }
+        }
+    };
+    //핸들러보다는 쓰레드처리를 많이함(
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+
+        progressBar = findViewById(R.id.progressBar);
+        textView = findViewById(R.id.textView);
+        handler.sendEmptyMessageDelayed(WHAT_PROGRESS, DELAY_MS);   //최초의 메세지 예약
+    }
+}
