@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="From Application"
+        android:textSize="20sp"
+        android:textColor="#AB3C60"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>
+=====================================================================
+package com.iot.application;
+
+import android.os.Bundle;
+import android.widget.TextView;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+
+        TextView textView = findViewById(R.id.textView);
+        MyApplication myApplication = (MyApplication) getApplication();
+        String globalString = myApplication.getGlobalString();
+
+        textView.setText(globalString);
+
+    }
+    //Application : 전역상태를 관리하는 클래스
+}
+=============================================
+package com.iot.application;
+
+import android.app.Application;
+
+//자바파일 만들기
+public class MyApplication extends Application {
+    private String globalString;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        globalString = "Hello Android";
+    }
+
+    public String getGlobalString() {
+        return globalString;
+    }
+
+    public void setGlobalString(String globalstring) {
+        this.globalString = globalString;
+    }
+    //=> 생성자 필요없음
+}
