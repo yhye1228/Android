@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
 //        }).start();//도 가능~!!
     }
     //비동기식 => 값이 0이 아님
-    //동기화 시키기!!!(뉴텍스 또는 세마코어)
+    //동기화 시키기!!!(뉴텍스 또는 세마코어) : 동기화 기법
     @Override
     protected void onDestroy(){
         super.onDestroy();
