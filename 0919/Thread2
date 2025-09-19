@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/test"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/test"
+        android:textColor="#009688"
+        android:textSize="25sp"/>
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/count"
+        android:textColor="#009688"
+        android:textSize="25sp"/>
+
+</LinearLayout>
+======================================================================
+package com.iot.thread2;
+
+import android.annotation.SuppressLint;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.TextView;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+//스레드 2개 생성(1씩 증가시키는 스레드, 1씩 감소시키는 스레드)
+public class MainActivity extends AppCompatActivity {
+    private TextView textView;
+    private int counter = 0;
+    @SuppressLint("MissingInflatedId")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+
+        textView = findViewById(R.id.textView);
+        //증가
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    for(int i = 0; i < 10000; i++) counter++;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        textView.setText("" + counter);
+                    }
+                });
+                Log.i("test", "thread running : " + counter);
+            }
+        }).start();
+        //감소
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    for(int i = 0; i < 10000; i++) counter--;
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        textView.setText("" + counter);
+                    }
+                });
+                Log.i("test", "thread running : " + counter);
+            }
+        }).start();
+//        thread2.start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//
+//            }
+//        }).start();//도 가능~!!
+
+    }
+    
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+    }
+}
