@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
                     mediaPlayer.release();  // gpt 추가
                     mediaPlayer = null;     // gpt 추가
                 }
-                //다시 재생시키기 위해서
+                //다시 재생시키기 위해서 create 호출
                 mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.golden);
             }
         });
