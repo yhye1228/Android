@@ -1,0 +1,23 @@
+package com.iot.serfaceview;
+
+import android.os.Bundle;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+    // 스레드 형태는 느리기 때문에 서페이스를 이용해서 연속적인 그림을 빠르게 재현하기
+    // 자바에서만 작성
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+
+        setContentView(new GameView(this));
+        //actionBar 안보이게 하기
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.hide();
+    }
+}
