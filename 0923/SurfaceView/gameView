@@ -1,0 +1,63 @@
+package com.iot.serfaceview;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Point;
+import android.graphics.drawable.Drawable;
+import android.util.Log;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+
+import androidx.annotation.NonNull;
+
+public class GameView extends SurfaceView implements SurfaceHolder.Callback {
+    //클래스 이름 가져오기
+    private static final String TAG = GameView.class.getName();
+    private final SurfaceHolder holder;
+    private Ball ball;
+    private boolean goOnPlay = true;
+    private final Thread renderer = new Thread(){//UI스레드와 별개인 스레드에서 그래픽 작업을 한다.
+        @Override
+        public void run() {
+            super.run();
+            Drawable drawable = getResources().getDrawable(R.drawable.space, null);//리소스에서 Drawable 가져오기
+            drawable.setBounds(holder.getSurfaceFrame());                                //Drawable이 그려질 영역을 지정(top, left)(bottom, right)
+            ball.setDelta(15, 30);
+
+            while(goOnPlay){
+                ball.move(holder.getSurfaceFrame());
+                Canvas canvas = holder.lockCanvas();    //그림들 그릴 빈 canvas를 얻어와 잠근다.
+                drawable.draw(canvas);                  // canvas에 Drawable객체를 그리기
+                ball.draw(canvas);                      // cnavas에 볼 그리기
+                holder.unlockCanvasAndPost(canvas);     // unlock이 되면 화면이 출력된다.
+            }
+        }
+    };
+    //우클릭 > Generator > Constructor > 생성자 선택
+    public GameView(Context context) {
+        super(context);
+        Log.i(TAG, "GameView created");
+        holder = getHolder();                           //holder객체 생성, surface가 holder를 가지고 있기 때문에 getHoler()
+        holder.addCallback(this);                       //메인스레드가 표면의 변화를 감지하여 스레드에게 그리기를 추가한다.
+    }
+
+    @Override
+    public void surfaceCreated(@NonNull SurfaceHolder holder) {
+        renderer.start();
+        ball = new Ball();
+        ball.setImage(getResources().getDrawable(R.drawable.red_ball, null));
+        //볼의 사이즈와 위치 지정
+        ball.setSize(new Point(100, 100));
+        ball.setPoint(new Point(0, 0));
+    }
+
+    @Override
+    public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {//표면의 색상이나 포멧이 변경되었을 때 호출
+
+    }
+
+    @Override
+    public void surfaceDestroyed(@NonNull SurfaceHolder holder) {   //표면이 파괴되기 직전에 호출
+
+    }
+}
