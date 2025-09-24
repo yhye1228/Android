@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:weightSum="12"
+    tools:context=".EditTextActivity">
+    <EditText
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/title"
+        android:layout_weight="1"
+        android:maxLines="1"/>
+    <EditText
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="10"
+        android:gravity="top"
+        android:hint="@string/write"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/saveBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:background="#1ED926"
+        android:text="@string/save" />
+</LinearLayout>
+==========================================
+
+package com.iot.memo;
+
+import static com.iot.memo.SQLite.CONTENT;
+import static com.iot.memo.SQLite.CREATE_DATE;
+import static com.iot.memo.SQLite.IS_DELETED;
+import static com.iot.memo.SQLite.TABLE_NAME;
+import static com.iot.memo.SQLite.TITLE;
+import static com.iot.memo.SQLite.UPDATE_DATE;
+
+import android.content.ContentValues;
+import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+public class EditTextActivity extends AppCompatActivity {
+    ;
+    private EditText titleEdit;
+    private EditText contentEdit;
+    private Button saveBtn;
+    private SQLite sqLite;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_edit_text);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+        sqLite = new SQLite(this);
+        titleEdit = findViewById(R.id.title);
+        contentEdit = findViewById(R.id.content);
+        saveBtn = findViewById(R.id.saveBtn);
+        //저장버튼 클릭
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String title = titleEdit.getText().toString();
+                String content = contentEdit.getText().toString();
+                //Log.i("test", "title" + title + "title");
+                if(title.isEmpty()){
+                    //str을 title로 저장하기
+                    int len = content.length();
+                    Log.i("test", "길이 : " + len);
+                    if(content.length() > 20){
+                        title = content.substring(0, 20);
+                    }else{
+                        title = content;
+                    }
+                }
+                //저장
+                writeDB(title, content);
+                //목록화면으로 가기
+                Intent intent = new Intent(EditTextActivity.this, MainActivity.class);
+                setResult(RESULT_OK, intent);  // RESULT_OK로 결과 세팅
+                finish();  // 액티비티 종료해서 결과 반환
+                //데이버 보내기
+//                titleEdit.setText("");
+//                contentEdit.setText("");
+//                intent.putExtra("title", title);
+//                intent.putExtra("text", content);
+//                setResult(RESULT_OK, intent);  // RESULT_OK로 결과 세팅
+//                finish();  // 액티비티 종료해서 결과 반환
+////                setResult(EditTextActivity.RESULT_OK, intent);
+////                finish();
+//                //title을 저장하기
+            }
+        });
+    }
+    //데이터 삽입
+    private void writeDB(String title, String content){
+        SQLiteDatabase db = sqLite.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(TITLE, title);
+        values.put(CONTENT, content);
+        values.put(CREATE_DATE, System.currentTimeMillis());
+        values.put(UPDATE_DATE, System.currentTimeMillis());
+        values.put(IS_DELETED, 0);
+        db.insertOrThrow(TABLE_NAME, null, values);
+    }
+    //데이터 수정
+    private void updateDB(String id, String title, String content){
+        SQLiteDatabase db = sqLite.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(TITLE, title);
+        values.put(CONTENT, content);
+        values.put(UPDATE_DATE, System.currentTimeMillis());
+        db.update(TABLE_NAME, values, "id = ?", new String[]{id});
+    }
+}
