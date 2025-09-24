@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="top"
+    tools:context=".MainActivity">
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right">
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/addBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:text="@string/Add"
+            android:background="#314CFF"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"/>
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/delBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/delete"
+            android:background="#FF1C1C"
+            android:textColor="#050505"
+            android:textSize="20sp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <CheckBox
+            android:id="@+id/checkBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#A6C0FB"
+            android:layout_weight="1"/>
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#CE96A9"
+            android:layout_weight="2"/>
+    </LinearLayout>
+<!--동적 아이템을 추가할 전용 레이아웃-->
+    <LinearLayout
+        android:id="@+id/dynamicLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"/>
+
+
+
+</LinearLayout>
+==============================================
+package com.iot.memo;
+
+import static com.iot.memo.SQLite.IS_DELETED;
+import static com.iot.memo.SQLite.TABLE_NAME;
+import static com.iot.memo.SQLite.UPDATE_DATE;
+
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.GridLayout;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import org.w3c.dom.Text;
+
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+
+public class MainActivity extends AppCompatActivity {
+    private LinearLayout dynamicLayout;
+    private Button addBtn;
+    private Button delBtn;
+    private TextView textView1;
+    private TextView txtId;
+    private TextView textView2;
+    private CheckBox checkBox;
+    private CheckBox chId;
+    private ActivityResultLauncher<Intent> launcher;
+    private SQLite sqLite;
+    private List<Integer> chckBoxIds = new ArrayList<>();
+    private List<Integer> txtIds = new ArrayList<>();
+
+    @SuppressLint("MissingInflatedId")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+//        ActionBar actionBar = getSupportActionBar();
+//        actionBar.hide();
+        //버튼 초기화
+        addBtn = findViewById(R.id.addBtn);
+        delBtn = findViewById(R.id.delBtn);
+        delBtn.setEnabled(false);
+        delBtn.setVisibility(View.GONE);
+        textView1 = findViewById(R.id.textView1);
+        textView2 = findViewById(R.id.textView2);
+
+
+        //SQL(조회, 삭제-수정)
+        sqLite = new SQLite(this);
+        Cursor cursor = readDB();
+        displayDB(cursor);
+
+
+        checkBox = findViewById(R.id.checkBox);
+
+        //text선택시 활성화하기
+        launcher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+                    @Override
+                    public void onActivityResult(ActivityResult result) {
+                        if (result.getResultCode() == RESULT_OK) {
+                            //DB 다시 읽기
+                            Cursor cursor = readDB();
+                            displayDB(cursor);
+                        }
+                    }
+                }
+        );
+
+        addBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, EditTextActivity.class);
+                launcher.launch(intent);
+
+            }
+        });
+        //임의이 체크박스에 대하여 적용하기
+        boolean anyChecked = false;
+        for (int id : chckBoxIds) {
+            CheckBox cb = findViewById(id);
+            if (cb != null && cb.isChecked()) {
+                anyChecked = true;
+                break;
+            }
+        }
+        if (anyChecked) {
+            delBtn.setEnabled(true);
+            delBtn.setVisibility(View.VISIBLE);
+        } else {
+            delBtn.setEnabled(false);
+            delBtn.setVisibility(View.GONE);
+        }
+
+        delBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                textView1.setText("");
+            }
+        });
+
+
+    }
+
+    private static final ZoneId ZONE = ZoneId.of("Asia/Seoul");
+    private static final DateTimeFormatter FMT =
+            DateTimeFormatter.ofPattern("YYYY-MM-dd hh:ss", Locale.KOREA);
+
+    private static String formatEpochMillis(long millis) {
+        return Instant.ofEpochMilli(millis).atZone(ZONE).format(FMT);
+    }
+
+    //인덱스, 제목, 내용, 입력날짜, 수정날짜, 삭제여부
+    //index, title, content, createDate, updateDate, delete(default : false)
+    //조회한 값을 textview에 매핑
+    private void displayDB(Cursor cursor) {
+        if (cursor == null) {
+            Log.e("displayDB", "Cursor is null");
+            return;
+        }
+        //StringBuilder builder1 = new StringBuilder();
+        int num = 1;
+        while (cursor.moveToNext()) {
+            StringBuilder builder1 = new StringBuilder();
+            long id = cursor.getLong(0);
+            String title;
+            if (cursor.isNull(1)) {
+                title = "";
+            } else {
+                title = cursor.getString(1);
+            }
+            long updateDate = cursor.getLong(4);
+            builder1.append(title).append("\n");
+            //builder2.append(formatEpochMillis(updateDate)).append("\n");
+            //text, checkBox 동적 생성하기
+            if (id == 1) {
+                textView1.setText(builder1.toString());
+            } else {
+                createView(builder1.toString());
+            }
+
+
+        }
+        //textView1_1.setText(builder1.toString());
+        //textView1_2.setText(builder2.toString());
+    }
+
+    //동적 생성
+    private void createView(String text) {
+
+        //동적레이아웃(체크박스, 텍스트뷰) 생성
+        // 1. 부모 레이아웃 가져오기(기존에 있는 레이아웃)
+        LinearLayout parentLayout = findViewById(R.id.dynamicLayout);
+        // 2. 자식 레이아웃 생성(수평방향)
+        LinearLayout rowLayout = new LinearLayout(MainActivity.this);
+        rowLayout.setOrientation(LinearLayout.HORIZONTAL);
+        // 정렬 추가
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        params.setMargins(16, 0, 0, 0);     //왼쪽여백 추가
+        // 3. 체크박스 생성
+        CheckBox dynamicCheckBox = new CheckBox(this);
+        dynamicCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(@NonNull CompoundButton buttonView, boolean isChecked) {
+                updateDeleteButtonState();
+            }
+        });
+        int chId = View.generateViewId();
+        dynamicCheckBox.setId(chId);
+        String index = "";
+        dynamicCheckBox.setTag("checkBox_" + index);
+        dynamicCheckBox.setLayoutParams(params);
+        chckBoxIds.add(chId);
+        // 4. 텍스트뷰 생성
+        TextView dynamicTextView1 = new TextView(this);
+        int txtId = View.generateViewId();
+        dynamicTextView1.setId(txtId);
+        dynamicTextView1.setTag("textView1_" + index);
+        //dynamicTextView1.setText("동적생성!");
+        dynamicTextView1.setLayoutParams(params);
+        dynamicTextView1.setText(text);
+        txtIds.add(txtId);
+//        TextView dynamicTextView2 = new TextView(this);
+//        dynamicTextView2.setText("동적생성!");
+//        dynamicTextView2.setLayoutParams(params);
+//        dynamicTextView2.setId(R.id.textView1_2);
+        // 5. rowLayout에 체크박스, 텍스트뷰 추가
+        rowLayout.addView(dynamicCheckBox);
+        rowLayout.addView(dynamicTextView1);
+//        rowLayout.addView(dynamicTextView2);
+        // 6. rowLayouot을 parent에 추가
+        parentLayout.addView(rowLayout);
+        //return txtId;
+    }
+
+    //삭제 버튼 활성/비활성화
+    private void updateDeleteButtonState(){
+        boolean anyChecked = false;
+        for (int id : chckBoxIds) {
+            CheckBox cb = findViewById(id);
+            if (cb != null && cb.isChecked()) {
+                anyChecked = true;
+                break;
+            }
+        }
+        delBtn.setEnabled(anyChecked);
+        delBtn.setVisibility(anyChecked ? View.VISIBLE : View.GONE);
+    }
+
+
+    //데이터 조회
+    private Cursor readDB(){
+        SQLiteDatabase db = sqLite.getReadableDatabase();
+        Cursor cursor = null;
+        try{
+            cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + IS_DELETED  + " = 0", null);
+        }catch(Exception e){
+            Log.e("readDB", "DB query error", e);
+        }
+        return cursor;
+    }//0=false, 1=true
+    //삭제 시(수정)
+    private void updateDB(String id){
+        SQLiteDatabase db = sqLite.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(IS_DELETED, 1);
+        values.put(UPDATE_DATE, System.currentTimeMillis());
+        db.update(TABLE_NAME, values, "id = ?", new String[]{id});
+    }
+}
