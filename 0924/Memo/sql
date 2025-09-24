@@ -1,0 +1,49 @@
+package com.iot.memo;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+import androidx.annotation.Nullable;
+
+public class SQLite extends SQLiteOpenHelper {
+
+    private static final String DATABASE_NAME = "MemoDatabase";
+    private static final int DATABASE_VERSION = 3;
+    public static final String TABLE_NAME = "MemoTable";
+    private static final String ID = "id";
+    public static final String TITLE = "title";
+    public static final String CONTENT = "content";
+    public static final String CREATE_DATE = "createDate";
+    public static final String UPDATE_DATE = "updateDate";
+    public static final String IS_DELETED = "isDeleted";
+    private static final String SQL_CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" +
+            ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            TITLE + " TEXT NOT NULL, " +
+            CONTENT + " TEXT, " +
+            CREATE_DATE + " INTEGER, " +
+            UPDATE_DATE + " INTEGER, " +
+            IS_DELETED + " INTEGER DEFAULT 0); ";//0=false, 1=true
+
+    public SQLite(@Nullable Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+
+
+    //인덱스, 제목, 내용, 입력날짜, 수정날짜, 삭제여부
+    //index, title, content, createDate, updateDate, delete(default : false(0))
+    // 필수(테이블 생성)
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        db.execSQL(SQL_CREATE_TABLE);
+    }
+
+    // 필수(버전 변경시 수정 또는 새로 생성)
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+        onCreate(db);
+    }
+
+}
