@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:weightSum="12"
+    android:background="#B2DC70"
+    tools:context=".EditTextActivity">
+    <EditText
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/title"
+        android:layout_weight="1"
+        android:maxLines="1"
+        android:background="#C0ED79"/>
+    <EditText
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="10"
+        android:gravity="top"
+        android:hint="@string/write"
+        android:background="#B2DC70"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:layout_marginTop="20dp">
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/mainBtn"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:background="#FFEB3B"
+            android:text="@string/main"
+            android:textSize="15sp"
+            android:width="20dp"/>
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/saveBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#1ED926"
+            android:text="@string/save"
+            android:textSize="15sp"
+            android:width="20dp"/>
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/editBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:background="#2196F3"
+            android:text="@string/edit"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>
+===============================
+package com.iot.memo;
+
+import static com.iot.memo.SQLite.ID;
+import static com.iot.memo.SQLite.CONTENT;
+import static com.iot.memo.SQLite.CREATE_DATE;
+import static com.iot.memo.SQLite.IS_DELETED;
+import static com.iot.memo.SQLite.TABLE_NAME;
+import static com.iot.memo.SQLite.TITLE;
+import static com.iot.memo.SQLite.UPDATE_DATE;
+
+import android.app.AlertDialog;
+import android.content.ContentValues;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+public class EditTextActivity extends AppCompatActivity {
+    private Integer id;
+    private EditText titleEdit;
+    private EditText contentEdit;
+    private Button mainBtn;
+    private Button saveBtn;
+    private Button editBtn;
+    private SQLite sqLite;
+    public static final int WHAT_PROGRESS = 1;  //메시지 식별자
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_edit_text);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+        sqLite = new SQLite(this);
+        titleEdit = findViewById(R.id.title);
+        contentEdit = findViewById(R.id.content);
+        mainBtn = findViewById(R.id.mainBtn);
+        saveBtn = findViewById(R.id.saveBtn);
+        editBtn = findViewById(R.id.editBtn);
+
+        //메인화면 이동
+        mainBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(EditTextActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
+
+
+        //초기화면 데이터, 버튼 세팅
+        //id가 있으면 readDB, displayDB없으면 빈화면
+        Intent intent = getIntent();
+        id = intent.getIntExtra(MainActivity.Tag_MSG, -1);
+        if(id== -1){
+            Log.i("id가 전달되지 않았습니다.", "id : " + id);
+            //저장버튼 활성화, 수정버튼 비활성화
+            boolean saveYN = true;
+            boolean editYN = false;
+            saveBtn.setEnabled(saveYN);
+            saveBtn.setVisibility(saveYN ? View.VISIBLE : View.GONE);
+            editBtn.setEnabled(editYN);
+            editBtn.setVisibility(editYN ? View.VISIBLE : View.GONE);
+        }else{
+            //저장버튼 비활성화, 수정버튼 활성화
+            boolean saveYN = false;
+            boolean editYN = true;
+            saveBtn.setEnabled(saveYN);
+            saveBtn.setVisibility(saveYN ? View.VISIBLE : View.GONE);
+            editBtn.setEnabled(editYN);
+            editBtn.setVisibility(editYN ? View.VISIBLE : View.GONE);
+        }
+        Cursor cursor = readDB(id);
+        displayDB(cursor);
+        
+        //saveBtn = findViewById(R.id.saveBtn);
+        //저장버튼 클릭
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String title = titleEdit.getText().toString();
+                String content = contentEdit.getText().toString();
+                //Log.i("test", "title" + title + "title");
+                if(title.isEmpty()){
+                    //str을 title로 저장하기
+                    int len = content.length();
+                    Log.i("test", "길이 : " + len);
+                    if(content.length() > 20){
+                        title = content.substring(0, 20);
+                    }else{
+                        title = content;
+                    }
+                }
+                //저장
+                writeDB(title, content);
+                //목록화면으로 가기
+                Intent intent = new Intent(EditTextActivity.this, MainActivity.class);
+                startActivity(intent);//메인화면 새로 호출
+                //setResult(RESULT_OK, intent);  // RESULT_OK로 결과 세팅
+                finish();  // 현재화면 닫기
+
+            }
+        });
+        //수정버튼 클릭
+        editBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                long result = updateDB(String.valueOf(id));
+                if(result == -1){
+                    //실패 팝업
+                    errorAlert();
+                }else{
+                    //성공 팝업
+                    okAlert();
+                }
+            }
+        });
+
+    }//onCreate end
+
+
+    private void okAlert(){
+        new AlertDialog.Builder(this)
+                .setTitle("알림")
+                .setMessage("수정이 성공하였습니다.")
+                .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //확인버튼 클릭 시 동작
+                        dialog.dismiss();   //창닫기
+
+                    }
+                })
+                .show();
+    }
+    private void errorAlert(){
+        new AlertDialog.Builder(this)
+                .setTitle("알림")
+                .setMessage("수정이 되지 않았습니다.")
+                .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //확인버튼 클릭 시 동작
+                        dialog.dismiss(); //창닫기
+                    }
+                })
+                .show();
+    }
+    //데이터 삽입
+    private void writeDB(String title, String content){
+        SQLiteDatabase db = sqLite.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(TITLE, title);
+        values.put(CONTENT, content);
+        values.put(CREATE_DATE, System.currentTimeMillis());
+        values.put(UPDATE_DATE, System.currentTimeMillis());
+        values.put(IS_DELETED, 0);
+        db.insertOrThrow(TABLE_NAME, null, values);
+    }
+
+    //데이터 수정
+    private long updateDB(String id){
+        SQLiteDatabase db = sqLite.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        String title = titleEdit.getText().toString();
+        String content = contentEdit.getText().toString();
+        values.put(TITLE, title);
+        values.put(CONTENT, content);
+        //values.put(IS_DELETED, 1);
+        values.put(UPDATE_DATE, System.currentTimeMillis());
+        long rowId = db.update(TABLE_NAME, values, "id = ?", new String[]{id});
+        return rowId;
+    }
+
+    //데이터 조회
+    private Cursor readDB(int id){
+        SQLiteDatabase db = sqLite.getReadableDatabase();
+        Cursor cursor = null;
+        try{
+            cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + IS_DELETED  + " = 0 " +
+                    " AND " + ID + " =" + id, null);
+        }catch(Exception e){
+            Log.e("readDB", "DB query error", e);
+        }
+        return cursor;
+    }//0=false, 1=true
+
+
+    //인덱스, 제목, 내용, 입력날짜, 수정날짜, 삭제여부
+    //index, title, content, createDate, updateDate, delete(default : false)
+    //조회한 값을 textview에 매핑
+    private void displayDB(Cursor cursor) {
+        if (cursor == null) {
+            Log.e("displayDB", "Cursor is null");
+            return;
+        }
+        //StringBuilder builder1 = new StringBuilder();
+        int num = 1;
+        while (cursor.moveToNext()) {
+            StringBuilder builder1 = new StringBuilder();
+            StringBuilder builder2 = new StringBuilder();
+            long id = cursor.getLong(0);
+            String title;
+            if (cursor.isNull(1)) {
+                title = "";
+            } else {
+                title = cursor.getString(1);
+            }
+            builder1.append(title).append("");
+
+            String content = cursor.getString(2);
+            long updateDate = cursor.getLong(4);
+            builder2.append(content).append("");
+            //builder2.append(formatEpochMillis(updateDate)).append("\n");
+            //text, checkBox 동적 생성하기
+            titleEdit.setText(builder1.toString());
+            contentEdit.setText(builder2.toString());
+
+
+
+        }
+        //textView1_1.setText(builder1.toString());
+        //textView1_2.setText(builder2.toString());
+    }
+}
