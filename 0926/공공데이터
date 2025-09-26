@@ -1,0 +1,123 @@
+package com.iot.myparking;
+
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.util.JsonReader;
+import android.util.Log;
+import android.util.Xml;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import org.xmlpull.v1.XmlPullParser;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+
+import javax.net.ssl.HttpsURLConnection;
+
+public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
+    private HttpsURLConnection myConnection;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+        //2. 백그라운드 스레드 생성
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    //All your metworking logic
+                    //3. url 및 연결 생성
+                    URL url;
+                    try {
+                        String baseUrl = "https://api.data.go.kr/openapi/tn_pubr_prkplce_info_api";
+                        String serviceKey = "Cu5fMg4frHtyMGJMETC9umWMjD6ZV5VWBUTD8VHtOEaTXnt5oBpmxrpSygWOe9ap67HWSYiLtTvmaxp8xLG3Kw%3D%3D";
+                        String fullUrl = baseUrl + "?serviceKey=" + serviceKey + "&type=xml&pageNo=1&numOfRows=10";
+                        url = new URL(fullUrl);
+                    } catch (MalformedURLException e) {
+                        throw new RuntimeException(e);
+                    }
+                    //EncodingKey :Cu5fMg4frHtyMGJMETC9umWMjD6ZV5VWBUTD8VHtOEaTXnt5oBpmxrpSygWOe9ap67HWSYiLtTvmaxp8xLG3Kw%3D%3D
+                    //DecodingKey :Cu5fMg4frHtyMGJMETC9umWMjD6ZV5VWBUTD8VHtOEaTXnt5oBpmxrpSygWOe9ap67HWSYiLtTvmaxp8xLG3Kw==
+                    // Create connection
+                    //native app key : db5c7e6cdd7de629f4b88a7bb5c13ae4
+                    try {
+                        myConnection = (HttpsURLConnection) url.openConnection();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    //4. 요청 헤더 설정(User-Agent헤더를 my-rest-app-v0.1로 설정하는 경우)
+                    myConnection.setRequestMethod("GET");
+                    //myConnection.setRequestProperty("user-Agent", "my-rest-app-v0.1");
+
+                    //5. 응답읽기
+                    if (myConnection.getResponseCode() == 200) {
+                        // Success
+                        // Futher processing here
+                        InputStream inputStream = myConnection.getInputStream();
+                        //XML파서 설정
+                        XmlPullParser parser = Xml.newPullParser();
+                        parser.setInput(new InputStreamReader(inputStream, "UTF-8"));
+
+                        int eventType = parser.getEventType();
+                        String tagName = "";
+                        boolean insideItem = false;
+
+                        String prkplceNm = "";
+                        String prkplceSe = "";
+
+                        while(eventType != XmlPullParser.END_DOCUMENT){
+                            switch(eventType){
+                                case XmlPullParser.START_TAG:
+                                    tagName = parser.getName();
+
+                                    if(tagName.equals("item")){
+                                        insideItem = true;
+                                    }else if(insideItem){
+                                        if(tagName.equals("prkplceNm")){
+                                            prkplceNm = parser.nextText();
+                                        }else if(tagName.equals("prkplaceSe")){
+                                            prkplceSe = parser.nextText();
+                                        }
+                                    }
+                                    break;
+                                case XmlPullParser.END_TAG:
+                                    if(parser.getName().equals("item")&&insideItem){
+                                        Log.d(TAG, "주차장 이름 : " + prkplceNm + ", 유형: " + prkplceSe);
+                                        insideItem = false;
+                                    }
+                                    break;
+                            }
+                            eventType = parser.next();
+                        }
+                        myConnection.disconnect();
+                    }else{
+                        // Error handling code goes here
+                        Log.e(TAG, "HTTP error code: " + myConnection.getResponseCode());
+                    }
+                }catch(Exception e){
+                    Log.e(TAG, "Error : " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+    }//onCreate end
+}
