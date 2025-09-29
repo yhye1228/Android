@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.viewpager.widget.ViewPager
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </androidx.viewpager.widget.ViewPager>
+</androidx.constraintlayout.widget.ConstraintLayout>
+=================================================================
+package com.iot.slideview;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
+import androidx.viewpager.widget.ViewPager;
+
+import com.google.android.material.tabs.TabLayout;
+
+public class SlideViewFragment extends Fragment {
+    //When requested, this adapter returns a DemoObjectFragment,
+    //representing an object in the collection.
+    DemoCollectionPagerAdapter demoCollectionPagerAdapter;      // 연결해주는 어뎁터 선언(4번째 클래스)
+    ViewPager viewPager;    //어뎁터를 보여줄 androidx에서 제공되는 페이지 뷰(슬라이드 뷰)
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.activity_slide_view_fragment, container, false);
+    }//androdix에서 제공되는 슬라이드 가능 레이아웃
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState){
+        demoCollectionPagerAdapter = new DemoCollectionPagerAdapter(getChildFragmentManager());
+        viewPager = view.findViewById(R.id.pager);
+        viewPager.setAdapter(demoCollectionPagerAdapter);
+
+        //위에 버튼 만들어 주는 부분, 슬라이드 말고 버튼으로도 화면 이동 가능하게하기
+        //xml보면 있음. 같이 보고 필요하면 사용하기
+        TabLayout tabLayout = view.findViewById(R.id.tab_layout);
+        tabLayout.setupWithViewPager(viewPager);    // 페이지와 함께 보여준다.
+    }
+}
