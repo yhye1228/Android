@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:id="@+id/slidehome"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+====================================================================
+package com.iot.slideview;
+
+import static android.content.ContentValues.TAG;
+
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Window;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+//슬라이드 뷰 틀 전체를 담을 클래스
+public class MainActivity extends FragmentActivity {
+    private FragmentManager fragmentManager;
+    private SlideViewFragment slideViewFragment;//내용물을 슬라이드 해줄 수 있게 해주는 틀 클래스
+    private FragmentTransaction fragmentTransaction;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        setContentView(R.layout.activity_main); //전체를 담는 뷰
+
+        Log.d(TAG, "슬라이드");
+        // 이 부분은 fragmentactivity를 담을 때 쓰는 전형적인 코드형식 임
+        fragmentManager = getSupportFragmentManager();
+        slideViewFragment = new SlideViewFragment();
+        fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.slidehome, slideViewFragment).commitAllowingStateLoss();
+        //이 부분은 두번째 클래스와 같이 보면 이해됨
+        Log.d(TAG, "슬라이드");
+
+    }
+}
