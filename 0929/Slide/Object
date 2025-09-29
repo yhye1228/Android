@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".DemoObjectFragment">
+
+    <LinearLayout
+        android:id="@+id/ll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <ImageView
+                    android:id="@+id/adimage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/snow"/>
+                <ImageView
+                    android:id="@+id/etcImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/rabbit"/>
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
+===========================================================
+package com.iot.slideview;
+
+import android.content.Context;
+import android.os.Bundle;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
+
+public class DemoObjectFragment extends Fragment {
+    public static final String ARG_OBJECT = "object";
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.activity_demo_object_fragment, container, false);
+    }
+
+    //결국 이부분을 넘길때 보이는 부를 이곳에 꾸미면 됨.
+    //틀 자체나 레이아웃등은 기본적으로 바꿀수 없게 되있는 구조지만, Bundle데이터 주고받으면서 if문으로
+    //어느정도 틀을 다르게 해서 볼수 있음
+    //예를 들어 Bundle에서 1값을 받으면 사과사진, 2값을 받으면 바나나 사진, 3값을 받으면 사진없애고 버튼니오게하기 등등...
+    //응용해서 만들기
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState){
+        Bundle args = getArguments();   //4번 클래스 에서 주는 Bundle정보를 받는 변수
+
+        if(args != null) {
+            Integer num = args.getInt(DemoObjectFragment.ARG_OBJECT);
+            //Log.i("test", "arg : " + num);
+            if (num == 1) {
+                view.findViewById(R.id.adimage).setVisibility(View.VISIBLE);
+                view.findViewById(R.id.etcImage).setVisibility(View.GONE);
+            } else {
+                view.findViewById(R.id.adimage).setVisibility(View.GONE);
+                view.findViewById(R.id.etcImage).setVisibility(View.VISIBLE);
+            }
+        }
+    }
+}
