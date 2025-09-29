@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/tvYYMM"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#21a4ff"
+        android:gravity="center"
+        android:paddingLeft="10dp"
+        android:textColor="#ffffff"
+        android:textSize="20sp" />
+    <GridView
+        android:id="@+id/gridView"
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:numColumns="7">
+
+    </GridView>
+</LinearLayout>
+====================================================
+package com.iot.mydiary;
+
+import android.content.Context;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.GridLayout;
+import android.widget.GridView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+public class MainActivity extends AppCompatActivity {
+    //연월 텍스트뷰
+    private TextView tvYYMM;
+    //그리드 뷰
+    private GridAdapter gridAdapter;
+    // 일 저장할 리스트
+    private ArrayList<String> dayList;
+    //그리드뷰
+    private GridView gridView;
+    //캘린더 변수
+    private Calendar mCal;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+        tvYYMM = (TextView) findViewById(R.id.tvYYMM);
+        gridView = (GridView) findViewById(R.id.gridView);
+
+        //오늘에 날짜를 세팅
+        long now = System.currentTimeMillis();
+        final Date date = new Date(now);
+
+        //연, 월, 일을 따로 저장
+        final SimpleDateFormat curYearFormat = new SimpleDateFormat("yyyy", Locale.KOREA);
+        final SimpleDateFormat curMonthFormat = new SimpleDateFormat("MM", Locale.KOREA);
+        final SimpleDateFormat curDayFormat = new SimpleDateFormat("dd", Locale.KOREA);
+
+        //현재 날짜를 텍스트뷰에 뿌려줌
+        tvYYMM.setText(" < " + curYearFormat.format(date) + "/" +  curMonthFormat.format(date) + " > ");
+        String fullText = tvYYMM.getText().toString();
+        int startBefore = fullText.indexOf("<");
+        int endBefore = startBefore + 1;
+        int startAfter = fullText.indexOf(">");
+        int endAfter = startAfter + 1;
+
+        //텍스트 일부를 선택시 이벤트 주기(SpannableString 생성)
+        SpannableString spannable = new SpannableString(fullText);
+
+        //클릭 가능한 부분을 지정
+        ClickableSpan clickableSpanB = new ClickableSpan() {
+            @Override
+            public void onClick(@NonNull View widget) {
+                //'<'클릭 시 실행할 코드
+                Toast.makeText(widget.getContext(), "'<' 클릭됨!", Toast.LENGTH_SHORT).show();
+                //화면이 오른쪽으로 밀리면서 전환(8월 달력 보여주기)
+            }
+
+            @Override
+            public void updateDrawState(@NonNull TextPaint ds) {
+                super.updateDrawState(ds);
+                ds.setColor(Color.RED);    //클릭 가능한 텍스트 색깔 지정
+                ds.setUnderlineText(false); // 밑줄 제거
+            }
+        };
+        ClickableSpan clickableSpanA = new ClickableSpan() {
+            @Override
+            public void onClick(@NonNull View widget) {
+                //'<'클릭 시 실행할 코드
+                Toast.makeText(widget.getContext(), "'>' 클릭됨!", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void updateDrawState(@NonNull TextPaint ds) {
+                super.updateDrawState(ds);
+                ds.setColor(Color.RED);    //클릭 가능한 텍스트 색깔 지정
+                ds.setUnderlineText(false); // 밑줄 제거
+            }
+        };
+
+        // '<'문자 부분에 ClickableSpan 적용
+        spannable.setSpan(clickableSpanB, startBefore, endBefore, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spannable.setSpan(clickableSpanA, startAfter, endAfter, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+
+        // TextView에 적용
+        tvYYMM.setText(spannable);
+        tvYYMM.setMovementMethod(LinkMovementMethod.getInstance());     //클릭가능하게 설정
+
+        //gridLayout에 요일 표시
+        dayList = new ArrayList<String>();
+        dayList.add("일");
+        dayList.add("월");
+        dayList.add("화");
+        dayList.add("수");
+        dayList.add("목");
+        dayList.add("금");
+        dayList.add("토");
+
+        mCal = Calendar.getInstance();
+        //Calendar에서 월은 0부터 시작
+
+        //이번달 1일이 무슨요일인지 판단 mCal.set(Year,Month, Day)
+        mCal.set(Integer.parseInt(curYearFormat.format(date)),
+                Integer.parseInt(curMonthFormat.format(date))-1,1);
+        int dayNum = mCal.get(Calendar.DAY_OF_WEEK);//요일(요일번호) 가져오기
+
+        //1일-요일 매칭 시키기 위해 공백 추가하기
+        for(int i = 1; i < dayNum; i ++){
+            dayList. add("");
+        }
+        setCalendarDate(mCal.get(Calendar.MONTH) + 1);
+
+        gridAdapter = new GridAdapter(getApplicationContext(), dayList);
+        gridView.setAdapter(gridAdapter);
+
+    }
+    /*
+     * 해당 월에 표시할 일 수  구하기
+     */
+    private void setCalendarDate(int month){
+        mCal.set(Calendar.MONTH, month - 1);
+
+        for(int i = 0; i < mCal.getActualMaximum(Calendar.DAY_OF_MONTH); i++){
+            dayList.add("" + (i + 1));
+        }
+    }
+
+    /*
+     *그리드 뷰 어댑터
+     */
+    private class GridAdapter extends BaseAdapter{
+        private final List<String> list;
+        private final LayoutInflater inflater;
+
+        /*
+         *생성자
+         */
+        public GridAdapter(Context context, List<String> list){
+            this.list = list;
+            this.inflater = (LayoutInflater) context.getSystemService(context.LAYOUT_INFLATER_SERVICE);
+        }
+
+        @Override
+        public int getCount() {
+            return list.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return list.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+
+            ViewHolder holder = null;
+
+            if(convertView == null){
+                convertView = inflater.inflate(R.layout.activity_grid_view, parent , false);
+                holder = new ViewHolder();
+
+                holder.gridTextView = (TextView) convertView.findViewById(R.id.gridTextView);
+
+                convertView.setTag(holder);
+            }else{
+                holder = (ViewHolder) convertView.getTag();
+            }
+            holder.gridTextView.setText("" + getItem(position));
+
+            //해당 날짜 텍스트 컬러,배경 변경 주기
+            mCal = Calendar.getInstance();
+            //오늘 날짜 가져오기
+            Integer today = mCal.get(Calendar.DAY_OF_MONTH);
+            String sToday = String.valueOf(today);
+            if(sToday.equals(getItem(position))){
+                holder.gridTextView.setTextColor(getResources().getColor(R.color.color_000000));
+            }
+            return convertView;
+        }
+    }
+    private class ViewHolder{
+        TextView gridTextView;
+    }
+}
