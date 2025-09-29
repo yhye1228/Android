@@ -1,0 +1,62 @@
+package com.iot.slideview;
+
+import android.os.Bundle;
+import android.util.Log;
+
+import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+
+public class DemoCollectionPagerAdapter extends FragmentStatePagerAdapter {
+    //그리드 뷰 어뎁터 처럼 플래그맨트 어뎁터가 있음
+    //넘겨야 되니가 순서나 기타등등 링킹해줌.
+    public DemoCollectionPagerAdapter(FragmentManager fm){
+        super(fm);
+    }
+
+    //자동으로 적용되는 인덱스 같음 함수
+    //틀만따고 내용은 바꾸면서 이용하기
+    //맨처음 화면 i = 0 , 넘길수록 +1씩 증가
+
+    @NonNull
+    @Override
+    public Fragment getItem(int i) {
+        Fragment fragment = new DemoObjectFragment();   //3번 클래스로 초기화
+        Bundle args = new Bundle(); //Bundle은 다른 클래스에서 데이터를 넘겨줄때도 사용됨
+        // Our object is just an integer : -P
+        args.putInt(DemoObjectFragment.ARG_OBJECT, i + 1);
+        //단순히 페이지 숫자 보여주려고 i+1 데이터를 3번 클래스의 ARG_OBJECT변수에 있는 "object"를 키값으로 해서 전송
+        //저 args.putInt가 int 데이터를 키값과 함께 어딘가로 보내는 기능이 있음.
+        fragment.setArguments(args);//fragment변수에 해당하는 fraagemnt클래스에 arg데이터들을 보냄
+        return fragment;
+    }
+    //페이지 개수 정하기, 3번 클래스의 내용물 개수라고 보면 됨
+    //넘길 수 있는 슬라이드 개수임
+    //자동적용되니 return에 원하는 슬라이드 개수 적으면 됨
+    @Override
+    public int getCount(){
+        return 3;
+    }
+    @Override
+    public CharSequence getPageTitle(int position){
+        Log.i("test", "position : " + position);
+        //이건 아까 1번 클래스에서 위에 버튼에 표시될 글
+        //틀 그대로 쓰면됨
+        String text = "";
+        if(position == 0){
+            text = "<";
+        }else if(position == 1){
+            text = "년/월";
+        }
+        else if(position == 2){
+            text = ">";
+        }
+        return text;
+    }
+}
