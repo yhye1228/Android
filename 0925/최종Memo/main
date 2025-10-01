@@ -256,7 +256,55 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra(String.valueOf(Tag_MSG), txtId);
                 startActivity(intent);
             }
-림
+        });
+        dynamicTextView1.setId(id);
+        dynamicTextView1.setTag("textView1_" + id);
+        Log.i("test", "txtidx : "+ id);
+        dynamicTextView1.setLayoutParams(params);
+        dynamicTextView1.setText(text);
+        txtIds.add(id);
+        dynamicTextView1.setWidth(500);
+        dynamicTextView1.setHeight(100);
+        dynamicTextView1.setBackgroundColor(Color.rgb(250,250,0));
+        TextView dynamicTextView2 = new TextView(this);
+        //dynamicTextView2.setText("동적생성!");
+        dynamicTextView2.setLayoutParams(params);
+        int id2 = View.generateViewId();
+        dynamicTextView2.setId(id2);
+        dynamicTextView2.setTag("textView2_" + id2);
+        dynamicTextView2.setLayoutParams(params);
+        dynamicTextView2.setText(date);
+        dynamicTextView2.setWidth(500);
+        dynamicTextView2.setHeight(100);
+        dynamicTextView2.setBackgroundColor(Color.rgb(250,250,0));
+        // 5. rowLayout에 체크박스, 텍스트뷰 추가
+        rowLayout.addView(dynamicCheckBox);
+        rowLayout.addView(dynamicTextView1);
+        rowLayout.addView(dynamicTextView2);
+        // 6. rowLayouot을 parent에 추가
+        parentLayout.addView(rowLayout);
+    }
+
+    //삭제 버튼 활성/비활성화
+    private void updateDeleteButtonState(){
+        boolean anyChecked = false;
+        //checkBox = findViewById(R.id.checkBox);
+
+//        if(checkBox != null && checkBox.isChecked()){
+//            anyChecked = true;
+//        }
+        for (int id : chckBoxIds) {
+            CheckBox cb = findViewById(id);
+            if (cb != null && cb.isChecked()) {
+                anyChecked = true;
+                break;
+            }
+        }
+        delBtn.setEnabled(anyChecked);
+        delBtn.setVisibility(anyChecked ? View.VISIBLE : View.GONE);
+    }
+
+    //삭제여부 문의
     private void queAlert(){
         new AlertDialog.Builder(this)
                 .setTitle("알림")
